@@ -22,37 +22,50 @@ RUN apt-get update && \
         libclang-dev \
         libpq5 \
         libgdal-dev \
-        libgeos-c1t64 \
-        libproj25 \
         libudunits2-0 \
         libxml2 \
         libcurl4-openssl-dev \
         libzmq5 \
-        libzmq3-dev  > /dev/null
+        libzmq3-dev \
+        libssl-dev > /dev/null
 
 # -------------------------------
 # R installation
 # -------------------------------
-ENV R_VERSION=4.4.2-1.2204.0
-ENV LITTLER_VERSION=0.3.20-2.2204.0
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" > /etc/apt/sources.list.d/cran.list
-RUN curl --silent --location --fail https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
-    > /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-RUN apt-get update -qq --yes && \
-    apt-get install --yes -qq \
-        r-base-core=${R_VERSION} \
-        r-base-dev=${R_VERSION} \
-        r-cran-littler=${LITTLER_VERSION} \
-        littler=${LITTLER_VERSION} > /dev/null
+ENV R_VERSION=4.4.2
+
+
+RUN wget --quiet -O /tmp/r-${R_VERSION}.deb \
+    https://cdn.rstudio.com/r/ubuntu-$(. /etc/os-release && echo $VERSION_ID | sed 's/\.//')/pkgs/r-${R_VERSION}_1_amd64.deb && \
+    apt install --yes --no-install-recommends /tmp/r-${R_VERSION}.deb > /dev/null && \
+    rm /tmp/r-${R_VERSION}.deb && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /opt/R/${R_VERSION}/bin/R /usr/local/bin/R && \
+    ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript && \
+    R --version
+
+ENV R_HOME=/opt/R/${R_VERSION}/lib/R
 
 # -------------------------------
 # RStudio server installation
 # -------------------------------
-ENV RSTUDIO_URL=https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.04.2-764-amd64.deb
-RUN curl --silent --location --fail ${RSTUDIO_URL} > /tmp/rstudio.deb && \
-    apt install --no-install-recommends --yes /tmp/rstudio.deb && \
-    rm /tmp/rstudio.deb
+RUN apt-get update -qq > /dev/null && \
+    if apt-cache search libssl3 | grep -q libssl3; then \
+      RSTUDIO_URL="https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.12.0-467-amd64.deb" ; \
+      RSTUDIO_HASH="1493188cdabcc1047db27d1bd0e46947e39562cbd831158c7812f88d80e742b3" ; \
+    else \
+      RSTUDIO_URL="https://download2.rstudio.org/server/focal/amd64/rstudio-server-2024.12.0-467-amd64.deb" ; \
+      RSTUDIO_HASH="052540a8df135d9ce7569ddc2fc9637671103934179691bc3e43298336fc3a8e" ; \
+    fi && \
+    curl --silent --location --fail "${RSTUDIO_URL}" -o /tmp/rstudio.deb && \
+    echo "${RSTUDIO_HASH} /tmp/rstudio.deb" | sha256sum -c - && \
+    apt-get install -y --no-install-recommends /tmp/rstudio.deb && \
+    rm -f /tmp/*.deb && \
+    apt-get purge -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # -------------------------------
 # Desktop packages for R GUI
@@ -60,38 +73,39 @@ RUN curl --silent --location --fail ${RSTUDIO_URL} > /tmp/rstudio.deb && \
 RUN apt-get update -qq --yes && \
     apt-get install --yes -qq \
         dbus-x11 \
-        firefox \
         xfce4 \
         xfce4-panel \
         xfce4-terminal \
         xfce4-session \
         xfce4-settings \
         xorg \
-        xubuntu-icon-theme > /dev/null
+        xubuntu-icon-theme && \ 
+        apt-get clean && \
+        rm -rf /var/lib/apt/lists/*
 
 # -------------------------------
 # R environment tweaks
 # -------------------------------
 RUN mkdir -p ${R_LIBS_USER} && chown ${NB_USER}:${NB_USER} ${R_LIBS_USER}
-RUN sed -i -e '/^R_LIBS_USER=/s/^/#/' /etc/R/Renviron && \
-    echo "R_LIBS_USER=${R_LIBS_USER}" >> /etc/R/Renviron && \
-    echo "TZ=${TZ}" >> /etc/R/Renviron
+RUN sed -i -e '/^R_LIBS_USER=/s/^/#/' /opt/R/${R_VERSION}/lib/R/etc/Renviron && \
+    echo "R_LIBS_USER=${R_LIBS_USER}" >> /opt/R/${R_VERSION}/lib/R/etc/Renviron && \
+    echo "TZ=${TZ}" >> /opt/R/${R_VERSION}/lib/R/etc/Renviron
 
 # -------------------------------
 # IRkernel
 # -------------------------------
-COPY Rprofile.site /usr/lib/R/etc/Rprofile.site
+COPY Rprofile.site /opt/R/${R_VERSION}/lib/R/etc/Rprofile.site
 COPY rsession.conf /etc/rstudio/rsession.conf
 COPY rserver.conf /etc/rstudio/rserver.conf
 COPY file-locks /etc/rstudio/file-locks
 
 USER ${NB_USER}
-RUN r -e "install.packages('IRkernel', version='1.2')" && \
-    r -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
+RUN R -e "install.packages('IRkernel')" && \
+    R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
 
 # -------------------------------
 # R packages
 # -------------------------------
 COPY install.R /tmp/install.R
-RUN r /tmp/install.R && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+RUN Rscript /tmp/install.R && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
