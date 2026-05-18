@@ -22,8 +22,8 @@ RUN apt-get update && \
         libclang-dev \
         libpq5 \
         libgdal-dev \
-        libgeos3.10.2 \
-        libproj22 \
+        libgeos-c1t64 \
+        libproj25 \
         libudunits2-0 \
         libxml2 \
         libcurl4-openssl-dev \
