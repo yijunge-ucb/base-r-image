@@ -5,3 +5,5 @@ channels:
 
 dependencies:
   - jupyter-rsession-proxy==2.5.1
+  - pip
+    - jupyter-shiny-proxy==1.4
