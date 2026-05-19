@@ -67,6 +67,14 @@ RUN apt-get update -qq > /dev/null && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+USER ${NB_USER}
+COPY --chown=${NB_USER}:${NB_USER} environment.yml /tmp/environment.yml
+
+# Update existing /srv/conda/notebook environment with new packages
+RUN mamba env update -n notebook -f /tmp/environment.yml && \
+    mamba clean -afy && rm -rf /tmp/environment.yml
+
+USER root
 # -------------------------------
 # Desktop packages for R GUI
 # -------------------------------
