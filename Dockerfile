@@ -5,9 +5,9 @@ FROM us-central1-docker.pkg.dev/ucb-datahub-2018/base-images-repo/base-python-im
 # -------------------------------
 
 ENV R_LIBS_USER=/srv/r
-ENV CONDA_DIR=/srv/conda/envs/notebook
-# Add littler to PATH
-ENV PATH=${CONDA_DIR}/lib/R/library/littler/bin:${CONDA_DIR}/bin:$PATH
+ENV CONDA_DIR=/srv/conda
+
+ENV PATH="/usr/lib/rstudio-server/bin:${CONDA_DIR}/envs/notebook/bin:${CONDA_DIR}/bin:${PATH}"
 
 # -------------------------------
 # System packages for R
@@ -109,7 +109,7 @@ COPY file-locks /etc/rstudio/file-locks
 
 USER ${NB_USER}
 RUN R -e "install.packages('IRkernel')" && \
-    R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
+    R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}/envs/notebook')"
 
 # -------------------------------
 # R packages
