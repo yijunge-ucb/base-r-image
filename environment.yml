@@ -1,0 +1,7 @@
+name: r-base
+
+channels:
+  - conda-forge
+
+dependencies:
+  - jupyter-rsession-proxy==2.5.1
