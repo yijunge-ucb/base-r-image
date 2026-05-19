@@ -1,7 +1,7 @@
 # Use RStudio's CRAN mirror to get binary packages
 # 'latest' just means it has all available versions.
 # We can specify version numbers in devtools::install_version
-options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/2026-05-11+Fksl5Ok_")) ## Using the 2026-05-11 snapshot
+options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/2026-05-11")) ## Using the 2026-05-11 snapshot
 
 
 # If install.packages() is run from an RStudio console, it downloads binaries.
