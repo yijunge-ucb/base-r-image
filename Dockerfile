@@ -9,31 +9,20 @@ ENV CONDA_DIR=/srv/conda
 
 ENV PATH="/usr/lib/rstudio-server/bin:${CONDA_DIR}/envs/notebook/bin:${CONDA_DIR}/bin:${PATH}"
 
-# -------------------------------
-# System packages for R
-# -------------------------------
+# -----------------------------------------------------------
+# System packages
+# ------------------------------------------------------------
 USER root
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        psmisc \
-        sudo \
-        libapparmor1 \
-        lsb-release \
-        libclang-dev \
-        libpq5 \
-        libgdal-dev \
-        libudunits2-0 \
-        libxml2 \
-        libcurl4-openssl-dev \
-        libzmq5 \
-        libzmq3-dev \
-        libssl-dev > /dev/null
+COPY apt.txt /tmp/apt.txt
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends $(grep -v '^#' /tmp/apt.txt) && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/apt.txt
 
 # -------------------------------
 # R installation
 # -------------------------------
 ENV R_VERSION=4.4.2
-
 
 RUN wget --quiet -O /tmp/r-${R_VERSION}.deb \
     https://cdn.rstudio.com/r/ubuntu-$(. /etc/os-release && echo $VERSION_ID | sed 's/\.//')/pkgs/r-${R_VERSION}_1_amd64.deb && \
@@ -76,22 +65,6 @@ RUN mamba env update -n notebook -f /tmp/environment.yml && \
 
 USER root
 # -------------------------------
-# Desktop packages for R GUI
-# -------------------------------
-RUN apt-get update -qq --yes && \
-    apt-get install --yes -qq \
-        dbus-x11 \
-        xfce4 \
-        xfce4-panel \
-        xfce4-terminal \
-        xfce4-session \
-        xfce4-settings \
-        xorg \
-        xubuntu-icon-theme && \ 
-        apt-get clean && \
-        rm -rf /var/lib/apt/lists/*
-
-# -------------------------------
 # R environment tweaks
 # -------------------------------
 RUN mkdir -p ${R_LIBS_USER} && chown ${NB_USER}:${NB_USER} ${R_LIBS_USER}
@@ -99,9 +72,7 @@ RUN sed -i -e '/^R_LIBS_USER=/s/^/#/' /opt/R/${R_VERSION}/lib/R/etc/Renviron && 
     echo "R_LIBS_USER=${R_LIBS_USER}" >> /opt/R/${R_VERSION}/lib/R/etc/Renviron && \
     echo "TZ=${TZ}" >> /opt/R/${R_VERSION}/lib/R/etc/Renviron
 
-# -------------------------------
-# IRkernel
-# -------------------------------
+
 COPY Rprofile.site /opt/R/${R_VERSION}/lib/R/etc/Rprofile.site
 COPY rsession.conf /etc/rstudio/rsession.conf
 COPY rserver.conf /etc/rstudio/rserver.conf
