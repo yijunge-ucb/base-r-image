@@ -1,0 +1,41 @@
+psmisc
+sudo
+libapparmor1
+lsb-release
+libclang-dev
+libpq5
+libgdal-dev
+libudunits2-0
+libxml2
+libcurl4-openssl-dev
+libzmq5
+libzmq3-dev
+libssl-dev
+
+# Desktop R GUI
+# dbus-x11
+# xfce4
+# xfce4-panel
+# xfce4-terminal
+# xfce4-session
+# xfce4-settings
+# xorg
+# xubuntu-icon-theme
+
+# R package qpdf
+libpoppler-cpp-dev
+
+# R package imager
+libx11-dev
+libglpk-dev
+libgmp3-dev
+libxml2-dev
+
+# R package units
+libudunits2-dev
+
+# additional R packages 
+# https://github.com/berkeley-dsep-infra/datahub/issues/5061
+libgeos-dev
+libproj-dev
+libmysqlclient-dev
