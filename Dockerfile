@@ -9,15 +9,17 @@ ENV CONDA_DIR=/srv/conda
 
 ENV PATH="/usr/lib/rstudio-server/bin:${CONDA_DIR}/envs/notebook/bin:${CONDA_DIR}/bin:${PATH}"
 
-# -----------------------------------------------------------
-# System packages
-# ------------------------------------------------------------
+# -------------------------------
+# System packages for R
+# -------------------------------
 USER root
-COPY apt.txt /tmp/apt.txt
-
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends $(grep -v '^#' /tmp/apt.txt) && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/apt.txt
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        psmisc \
+        sudo \
+        libapparmor1 \
+        lsb-release \
+        libssl-dev > /dev/null
 
 # -------------------------------
 # R installation
