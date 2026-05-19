@@ -19,6 +19,14 @@ RUN apt-get update && \
         sudo \
         libapparmor1 \
         lsb-release \
+        libclang-dev \
+        libpq5 \
+        libgdal-dev \
+        libudunits2-0 \
+        libxml2 \
+        libcurl4-openssl-dev \
+        libzmq5 \
+        libzmq3-dev \
         libssl-dev > /dev/null
 
 # -------------------------------
