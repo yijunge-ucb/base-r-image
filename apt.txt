@@ -11,7 +11,6 @@ libcurl4-openssl-dev
 libzmq5
 libzmq3-dev
 libssl-dev
-
 # Desktop R GUI
 # dbus-x11
 # xfce4
