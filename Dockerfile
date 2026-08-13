@@ -27,7 +27,7 @@ RUN apt-get -qq update --yes && \
 # -------------------------------
 # R installation
 # -------------------------------
-ENV R_VERSION=4.4.2
+ENV R_VERSION=4.5.3
 
 RUN wget --quiet -O /tmp/r-${R_VERSION}.deb \
     https://cdn.rstudio.com/r/ubuntu-$(. /etc/os-release && echo $VERSION_ID | sed 's/\.//')/pkgs/r-${R_VERSION}_1_amd64.deb && \
